@@ -1,6 +1,6 @@
 import { inject, Injectable, OnDestroy } from '@angular/core';
 import { Note } from '../interfaces/note.interface';
-import { Firestore, collection, collectionData, doc, addDoc, onSnapshot } from '@angular/fire/firestore';
+import { Firestore, collection, collectionData, doc, addDoc, onSnapshot, updateDoc } from '@angular/fire/firestore';
 import { Observable } from 'rxjs';
 
 @Injectable({
@@ -50,7 +50,7 @@ export class NoteListService implements OnDestroy {
   }
 
   /**
-   * This function return the array of notes that are not in the trash
+   * This function return the array of notes that are not in the trash (READ)
    * @returns [notes]
    */
   subNotesList(){
@@ -118,7 +118,7 @@ export class NoteListService implements OnDestroy {
   }
   
   /**
-   * This function add a note to the Firestore database
+   * This function add a note to the Firestore database (CREATE)
    * The callback return an error if that note could not be created
    * or a message in the console with the ID of the cretaed note
    * @param item - The Note, that will be added to Firestore
@@ -129,5 +129,48 @@ export class NoteListService implements OnDestroy {
     ).then(
       (docRef)=> {console.log("Document creared with ID: ", docRef!.id);}
     )
+  }
+
+  /**
+   * This function updates a note in Firebase
+   * (UPDATE)
+   */
+  async updateNote(note: Note){
+    if(note.id){
+      let docRef = this.getSingleDocTef(this.getColIdFromCollection(note), note.id); 
+      await updateDoc(docRef, this.getCleanJSON(note)).catch(
+        (err)=>{ console.error(err)}
+      ).then(
+        () => {console.log(`Document with ${note.id}  was updated`);}
+      );
+    }
+  }
+
+  /**
+   * That is a help function to clean the JSOn
+   * Due to the type in the function updateNote must do that
+   * @param note - Object Note
+   * @returns Return every propierty of the object note
+   */
+  getCleanJSON(note:Note){
+    return {
+      type: note.type,
+      title: note.title,
+      content: note.content,
+      marked: note.marked,
+    }
+  }
+
+  /**
+   * This function resolve the problem of Id in the Firebase (Notes) and the type of a note * (note)
+   * @param note- Object Note
+   * @returns - Id of the collection in Firebase notes | trash
+   */
+  getColIdFromCollection(note:Note){
+    if(note.type == 'note'){
+      return 'notes'
+    }else{
+      return 'trash'
+    }
   }
 }
