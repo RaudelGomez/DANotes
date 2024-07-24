@@ -14,18 +14,29 @@ import { FormsModule } from '@angular/forms';
 export class AddNoteDialogComponent {
   @Output() addDialogClosed: EventEmitter<boolean> = new EventEmitter();
   title = "";
-  description = "";
+  content = "";
 
   constructor(public noteService: NoteListService){}
 
   closeDialog() {
     this.title = "";
-    this.description = "";
+    this.content = "";
     this.addDialogClosed.emit(false);
   }
 
+  /**
+   * This function will be loaded when the button add Note in the dialog is pushed.
+   */
   addNote(){
-    //beachte das closeDialog() zum Schluss kommt, denn es leert die Variablen
+    let note:Note = {
+      type: "note",
+      title: this.title,
+      content: this.content,
+      marked: false
+    };
+    this.noteService.addNote(note);
+    //That function load closeDialog() and make all Variables empty.
+    //That has to be called at the end of the function
     this.closeDialog();
   }
 }

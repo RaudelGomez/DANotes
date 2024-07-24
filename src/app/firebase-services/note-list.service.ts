@@ -1,17 +1,17 @@
-import { inject, Injectable } from '@angular/core';
+import { inject, Injectable, OnDestroy } from '@angular/core';
 import { Note } from '../interfaces/note.interface';
-import { Firestore, collection, collectionData, doc, onSnapshot } from '@angular/fire/firestore';
+import { Firestore, collection, collectionData, doc, addDoc, onSnapshot } from '@angular/fire/firestore';
 import { Observable } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
 })
-export class NoteListService {
+export class NoteListService implements OnDestroy {
 
   trashNotes: Note[] = [];
   normalNotes: Note[] = [];
   /**
-   * Collection of notes when the version collectionData is used
+   * Collection of notes when the version collectionData and Observables RxJS is used
    */
   // items$;
   // items;
@@ -29,7 +29,7 @@ export class NoteListService {
     this.unsubNotes = this.subNotesList();
     this.unsubTrash = this.subTrashList();
     
-    //Version using collectionData
+    //Version using collectionData and Observables RxJS
     // this.items$ = collectionData(this.getNotesRef());
     // this.items = this.items$.subscribe((list)=>{
     //   list.forEach(element => {
@@ -42,10 +42,10 @@ export class NoteListService {
   /**
    * This Function destroy all data if the component is not loaded anymore
    */
-  ngonDestroy(){
+  ngOnDestroy(){
     this.unsubNotes();
     this.unsubTrash();
-    //Version collectiondata
+    //Version collectiondata and Observables (RxJS)
     //this.items.unsubscribe();
   }
 
@@ -115,5 +115,19 @@ export class NoteListService {
       content: obj.content || "",
       marked: obj.marked || false,
     }
+  }
+  
+  /**
+   * This function add a note to the Firestore database
+   * The callback return an error if that note could not be created
+   * or a message in the console with the ID of the cretaed note
+   * @param item - The Note, that will be added to Firestore
+   */
+  async addNote(item: Note){
+    await addDoc(this.getNotesRef(), item).catch(
+      (err)=> { console.error(err);}
+    ).then(
+      (docRef)=> {console.log("Document creared with ID: ", docRef!.id);}
+    )
   }
 }
