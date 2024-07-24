@@ -58,6 +58,12 @@ export class NoteListService implements OnDestroy {
    * @returns [notes]
    */
   subNotesList(){
+    //Subcollection example way1
+    //let ref = collection(this.firestore, "notes/y1M0JVK3ft7MaUgayix2/extra");
+    //Subcollection example way2
+    // let ref = collection(doc(collection(this.firestore, "notes"), "y1M0JVK3ft7MaUgayix2"), "extra");
+    // const q = query(ref, orderBy("title"), limit(100));
+
     //This query show only the notes until limit () and sort the for the (orderBy) Variable
     //If you wanna use orderBy and where toguether, you have to refer to the same propierty(In this case "marked")
     const q = query(this.getNotesRef(), orderBy("title"), limit(100));
@@ -65,7 +71,19 @@ export class NoteListService implements OnDestroy {
       this.normalNotes = [];
       list.forEach(element =>{
         this.normalNotes.push(this.setNoteObject(element.data(), element.id));
-      })
+      });
+      //To see the change in the document when some of this action will be done
+      list.docChanges().forEach((change) => {
+        if (change.type === "added") {
+            console.log("New note: ", change.doc.data());
+        }
+        if (change.type === "modified") {
+            console.log("Modified note: ", change.doc.data());
+        }
+        if (change.type === "removed") {
+            console.log("Removed note: ", change.doc.data());
+        }
+      });
     });
   }
 
