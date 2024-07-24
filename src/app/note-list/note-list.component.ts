@@ -31,7 +31,11 @@ export class NoteListComponent {
     if(this.status == "trash"){
       return this.noteService.trashNotes;
     }else{
-      return this.noteService.normalNotes;
+      if(this.favFilter == "all"){
+        return this.noteService.normalNotes;
+      }else{
+        return this.noteService.normalMarkedNotes;
+      }
     }
   }
 

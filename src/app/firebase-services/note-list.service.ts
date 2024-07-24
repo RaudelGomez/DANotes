@@ -1,6 +1,6 @@
 import { inject, Injectable, OnDestroy } from '@angular/core';
 import { Note } from '../interfaces/note.interface';
-import { Firestore, collection, collectionData, doc, addDoc, onSnapshot, updateDoc, deleteDoc } from '@angular/fire/firestore';
+import { Firestore, collection, collectionData, doc, addDoc, onSnapshot, updateDoc, deleteDoc, query, where, orderBy, limit } from '@angular/fire/firestore';
 import { Observable } from 'rxjs';
 
 @Injectable({
@@ -10,6 +10,7 @@ export class NoteListService implements OnDestroy {
 
   trashNotes: Note[] = [];
   normalNotes: Note[] = [];
+  normalMarkedNotes: Note[] = [];
   /**
    * Collection of notes when the version collectionData and Observables RxJS is used
    */
@@ -18,6 +19,7 @@ export class NoteListService implements OnDestroy {
 
   unsubNotes;
   unsubTrash;
+  unsubMarkedNotes;
 
   firestore: Firestore = inject(Firestore);
 
@@ -28,6 +30,7 @@ export class NoteListService implements OnDestroy {
     //Version using onSnapShot
     this.unsubNotes = this.subNotesList();
     this.unsubTrash = this.subTrashList();
+    this.unsubMarkedNotes = this.subNotesMarkedList();
     
     //Version using collectionData and Observables RxJS
     // this.items$ = collectionData(this.getNotesRef());
@@ -45,6 +48,7 @@ export class NoteListService implements OnDestroy {
   ngOnDestroy(){
     this.unsubNotes();
     this.unsubTrash();
+    this.unsubMarkedNotes();
     //Version collectiondata and Observables (RxJS)
     //this.items.unsubscribe();
   }
@@ -54,10 +58,29 @@ export class NoteListService implements OnDestroy {
    * @returns [notes]
    */
   subNotesList(){
-    return onSnapshot(this.getNotesRef(), (list)=>{
+    //This query show only the notes until limit () and sort the for the (orderBy) Variable
+    //If you wanna use orderBy and where toguether, you have to refer to the same propierty(In this case "marked")
+    const q = query(this.getNotesRef(), orderBy("title"), limit(100));
+    return onSnapshot(q, (list)=>{
       this.normalNotes = [];
       list.forEach(element =>{
         this.normalNotes.push(this.setNoteObject(element.data(), element.id));
+      })
+    });
+  }
+
+   /**
+   * This function return the array of notes that are not in the trash (READ) and the were saved
+   * @returns [notes]
+   */
+   subNotesMarkedList(){
+    //This query show only the notes until limit () and sort the for the (orderBy) Variable
+    //If you wanna use orderBy and where toguether, you have to refer to the same propierty(In this case "marked")
+    const q = query(this.getNotesRef(), limit(100), where("marked", "==", true));
+    return onSnapshot(q, (list)=>{
+      this.normalMarkedNotes = [];
+      list.forEach(element =>{
+        this.normalMarkedNotes.push(this.setNoteObject(element.data(), element.id));
       })
     });
   }
