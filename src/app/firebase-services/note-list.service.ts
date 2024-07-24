@@ -1,6 +1,6 @@
 import { inject, Injectable, OnDestroy } from '@angular/core';
 import { Note } from '../interfaces/note.interface';
-import { Firestore, collection, collectionData, doc, addDoc, onSnapshot, updateDoc } from '@angular/fire/firestore';
+import { Firestore, collection, collectionData, doc, addDoc, onSnapshot, updateDoc, deleteDoc } from '@angular/fire/firestore';
 import { Observable } from 'rxjs';
 
 @Injectable({
@@ -123,12 +123,38 @@ export class NoteListService implements OnDestroy {
    * or a message in the console with the ID of the cretaed note
    * @param item - The Note, that will be added to Firestore
    */
-  async addNote(item: Note){
-    await addDoc(this.getNotesRef(), item).catch(
-      (err)=> { console.error(err);}
-    ).then(
-      (docRef)=> {console.log("Document creared with ID: ", docRef!.id);}
-    )
+  async addNote(item: Note, colId: "notes" | "trash"){
+    if(colId == "notes"){
+      await addDoc(this.getNotesRef(), item).catch(
+        (err)=> { console.error(err);}
+      ).then(
+        (docRef)=> {console.log("Document creared with ID: ", docRef!.id);}
+      )
+    }else{
+      await addDoc(this.getTrashRef(), item).catch(
+        (err)=> { console.error(err);}
+      ).then(
+        (docRef)=> {console.log("Document creared with ID: ", docRef!.id);}
+      )
+    }
+
+    // if (colId == 'note') {
+    //   await addDoc(this.getNotesRef(), item)
+    //     .catch((err) => {
+    //       console.error(err);
+    //     })
+    //     .then((docRef) => {
+    //       console.log('Document written with ID: ', docRef?.id);
+    //     });
+    // } else {
+    //   await addDoc(this.getTrashRef(), item)
+    //     .catch((err) => {
+    //       console.error(err);
+    //     })
+    //     .then((docRef) => {
+    //       console.log('Document written with ID: ', docRef?.id);
+    //     });
+    // }
   }
 
   /**
@@ -172,5 +198,18 @@ export class NoteListService implements OnDestroy {
     }else{
       return 'trash'
     }
+  }
+
+  /**
+   * This function delete a document in the Firebase (DELETE)
+   * @param colId - Collection Id in Firebase
+   * @param docId - Id of the document to delete
+   */
+  async deleteNote(colId: "notes" | "trash", docId:string){
+    await deleteDoc(this.getSingleDocTef(colId, docId)).catch(
+      (err)=> {console.error(err);}
+    ).then(
+      ()=> {console.log(`Document with ${docId} was deleted`);}
+    )
   }
 }

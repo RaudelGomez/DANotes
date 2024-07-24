@@ -34,7 +34,7 @@ export class AddNoteDialogComponent {
       content: this.content,
       marked: false
     };
-    this.noteService.addNote(note);
+    this.noteService.addNote(note, this.noteService.getColIdFromCollection(note));
     //That function load closeDialog() and make all Variables empty.
     //That has to be called at the end of the function
     this.closeDialog();
