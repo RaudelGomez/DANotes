@@ -1,6 +1,6 @@
 {
   "hosting": {
-    "public": "dist/danotes",
+    "public": "/dist/danotes/browser",
     "ignore": [
       "firebase.json",
       "**/.*",
